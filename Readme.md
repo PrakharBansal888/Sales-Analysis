@@ -4,6 +4,37 @@ An end-to-end data analytics project built with SQL, Python, and Power BI using 
 
 ---
 
+## Power BI Dashboard
+
+![Dashboard](images/dashboard_screenshot.png)
+
+5-visual interactive dashboard with 4 slicers (Year, Region, Category, Segment):
+
+| Visual | Type | Insight |
+|---|---|---|
+| KPI cards | Card | Revenue, Orders, Avg Order Value, Customers, Ship Days |
+| Monthly trend | Line chart | Revenue by month, split by year |
+| Sales by region | Bar chart | Regional revenue comparison |
+| Revenue by category | Treemap | Category + sub-category breakdown |
+| Sales by state | Map | Geographic revenue distribution |
+
+---
+
+## EDA Charts (Python)
+
+![EDA Charts](images/eda_charts.png)
+
+4 charts generated using Python (Pandas + Matplotlib) before building the dashboard:
+
+| Chart | Finding |
+|---|---|
+| Monthly revenue trend | Consistent upward trend 2015–2018 with Q4 spikes each year |
+| Sales by category | Technology leads at ~$836K, Furniture and Office Supplies close behind |
+| Sales by region | West highest at ~$725K, South lowest at ~$391K |
+| Days to ship distribution | Most orders ship in 4–5 days, average 3.96 days |
+
+---
+
 ## Business Questions Answered
 
 - Which regions and categories generate the most revenue?
@@ -35,19 +66,18 @@ sales-analysis/
 ├── data/
 │   ├── train.csv                  # Raw Superstore dataset (9,800 rows)
 │   └── superstore_clean.csv       # Cleaned dataset exported for Power BI
-├── sql/
-│   └── SQLQueries.py              # 5 core business SQL queries via SQLite
-├── notebooks/
-│   ├── EDA.py                     # Data quality checks and stats
-│   ├── Charts.py                  # 4 EDA visualisations
-│   ├── ML.py                      # Linear regression sales prediction
-│   └── ExportForPowerBI.py        # Feature engineering + CSV export
-├── powerbi/
-│   └── sales_dashboard.pbix       # Power BI report file
 ├── images/
 │   ├── eda_charts.png             # EDA chart output
 │   └── dashboard_screenshot.png   # Power BI dashboard screenshot
+├── powerbi/
+│   └── sales_dashboard.pbix       # Power BI report file
 ├── LoadSQL.py                     # Loads CSV into SQLite database
+├── SQLQueries.py                  # 5 core business SQL queries via SQLite
+├── EDA.py                         # Data quality checks and stats
+├── Charts.py                      # 4 EDA visualisations
+├── ML.py                          # Linear regression sales prediction
+├── ExportForPowerBI.py            # Feature engineering + CSV export
+├── sales.db                       # SQLite database file
 └── README.md
 ```
 
@@ -58,8 +88,8 @@ sales-analysis/
 - **West region** leads in total revenue (~$725K), followed closely by East (~$678K)
 - **Technology** is the highest-revenue category, driven by Phones and Machines
 - **Revenue grows year-on-year** from 2015 to 2018 with a consistent Q4 spike each year
-- **Average shipping time** is 3.96 days across all orders and regions
-- **Average order value** is $459 — Consumer segment places the most orders
+- **Average shipping time** is 3.96 days — most orders ship in 4–5 days
+- **Average order value** is $459 across 5,009 unique orders and 793 customers
 
 ---
 
@@ -78,27 +108,9 @@ sales-analysis/
 **Model:** Linear Regression  
 **Target:** Sales  
 **Features:** Days to ship, Region (encoded), Category (encoded), Segment (encoded)  
-**Metrics:**
-- R²: model score on test set
-- MAE: mean absolute error in dollars
+**Metrics:** R² score and MAE (Mean Absolute Error in dollars)
 
-Simple baseline model demonstrating feature engineering and sklearn pipeline on sales data.
-
----
-
-## Power BI Dashboard
-
-5-visual interactive dashboard with 4 slicers (Year, Region, Category, Segment):
-
-| Visual | Type | Insight |
-|---|---|---|
-| KPI cards | Card | Revenue, Orders, Avg Order Value, Customers, Ship Days |
-| Monthly trend | Line chart | Revenue by month, split by year |
-| Sales by region | Bar chart | Regional revenue comparison |
-| Revenue by category | Treemap | Category + sub-category breakdown |
-| Sales by state | Map | Geographic revenue distribution |
-
-![Dashboard](images/dashboard_screenshot.png)
+Baseline model demonstrating feature engineering and sklearn pipeline on real sales data.
 
 ---
 
@@ -122,23 +134,23 @@ python LoadSQL.py
 
 **4. Run SQL queries**
 ```bash
-python sql/SQLQueries.py
+python SQLQueries.py
 ```
 
 **5. Run EDA and charts**
 ```bash
-python notebooks/EDA.py
-python notebooks/Charts.py
+python EDA.py
+python Charts.py
 ```
 
 **6. Run ML model**
 ```bash
-python notebooks/ML.py
+python ML.py
 ```
 
 **7. Export for Power BI**
 ```bash
-python notebooks/ExportForPowerBI.py
+python ExportForPowerBI.py
 ```
 
 **8. Open Power BI dashboard**  
@@ -148,7 +160,7 @@ Open `powerbi/sales_dashboard.pbix` in Power BI Desktop.
 
 ## Dataset
 
-- **Source:** Superstore Sales Dataset (widely available on Kaggle)
+- **Source:** Superstore Sales Dataset (available on Kaggle)
 - **Rows:** 9,800
 - **Columns:** 18 (Order ID, Order Date, Ship Date, Ship Mode, Customer details, Region, Category, Sub-Category, Product Name, Sales)
 - **Period:** January 2015 – December 2018
