@@ -1,6 +1,6 @@
 # Sales Performance Dashboard
 
-An end-to-end data analytics project built with SQL, Python, and Power BI using the Superstore Sales dataset (9,800 rows, 2015–2018).
+An end-to-end data analytics project built with SQL, Python, and Power BI using the Superstore Sales dataset (9,800 rows, 2015–2018). Features a **normalised relational schema** (4 tables) and **12 queries incl. joins, CTEs, window functions**.
 
 ---
 
@@ -42,6 +42,10 @@ An end-to-end data analytics project built with SQL, Python, and Power BI using 
 - Which customer segments and ship modes are most common?
 - How long does it take to ship orders on average?
 - Who are the top 10 highest-revenue products?
+- Which customers drive the majority of revenue (Pareto)?
+- What does month-over-month and year-over-year growth look like?
+- How do customers segment under RFM scoring?
+- What does cohort-based retention look like over time?
 
 ---
 
@@ -50,7 +54,7 @@ An end-to-end data analytics project built with SQL, Python, and Power BI using 
 | Layer | Tool | Purpose |
 |---|---|---|
 | Data storage | SQLite | Lightweight local database |
-| Data querying | SQL | Business-level analysis queries |
+| Data querying | SQL | 12 analytical queries with joins, CTEs, window functions |
 | Data processing | Python (Pandas) | Cleaning, EDA, feature engineering |
 | Visualisation | Matplotlib | EDA charts |
 | Machine learning | Scikit-learn | Sales prediction (Linear Regression) |
@@ -69,16 +73,14 @@ sales-analysis/
 ├── images/
 │   ├── eda_charts.png             # EDA chart output
 │   └── dashboard_screenshot.png   # Power BI dashboard screenshot
-├── powerbi/
-│   └── sales_dashboard.pbix       # Power BI report file
-├── LoadSQL.py                     # Loads CSV into SQLite database
-├── SQLQueries.py                  # 5 core business SQL queries via SQLite
+├── LoadSQL.py                     # Loads CSV into normalised SQLite schema (4 tables)
+├── SQLQueries.py                  # 12 analytical SQL queries (joins, CTEs, windows)
 ├── EDA.py                         # Data quality checks and stats
-├── Charts.py                      # 4 EDA visualisations
+├── charts.py                      # 4 EDA visualisations
 ├── ML.py                          # Linear regression sales prediction
-├── ExportForPowerBI.py            # Feature engineering + CSV export
+├── Export_PowerBI.py              # Feature engineering + CSV export
 ├── sales.db                       # SQLite database file
-└── README.md
+└── Readme.md
 ```
 
 ---
@@ -90,27 +92,51 @@ sales-analysis/
 - **Revenue grows year-on-year** from 2015 to 2018 with a consistent Q4 spike each year
 - **Average shipping time** is 3.96 days — most orders ship in 4–5 days
 - **Average order value** is $459 across 5,009 unique orders and 793 customers
+- **Pareto effect**: top ~50% of customers (393 of 793) drive 80% of total revenue
+- **Repeat purchase rate** is 98.4% — nearly all customers placed more than one order
+- **RFM segmentation**: 210 Champions, 262 Loyal, 282 At Risk, and 39 Lost customers
+- **Cohort retention**: average monthly retention stabilises around 16–21% across the first 12 months, with a slight uptick at month 12 (21.9%)
 
 ---
 
 ## SQL Queries Covered
 
-1. Total revenue by year
-2. Top 10 products by revenue
-3. Sales by region with order count
-4. Sales by category and sub-category
-5. Monthly revenue trend
+12 queries using joins across normalised tables, CTEs, and window functions:
+
+| # | Query | Techniques |
+|---|---|---|
+| 1 | Total revenue by year | JOIN, GROUP BY, aggregate |
+| 2 | Top 10 products by revenue | JOIN (products), ORDER BY, LIMIT |
+| 3 | Sales by region with order count | 3-table JOIN, COUNT DISTINCT |
+| 4 | Sales by category & sub-category | JOIN, multi-level GROUP BY |
+| 5 | Monthly revenue trend | JOIN, strftime, time-series |
+| 6 | Month-over-Month growth | CTE, LAG() window function |
+| 7 | Top 3 products per category | CTE, ROW_NUMBER() OVER (PARTITION BY) |
+| 8 | Pareto analysis (cumulative revenue) | CTE, cumulative SUM() window |
+| 9 | YTD running total per year | CTE, SUM() OVER (PARTITION BY year) |
+| 10 | YoY growth by category | CTE, LAG() with PARTITION BY |
+| 11 | RFM segmentation | CTE, NTILE(4), CASE expression |
+| 12 | Cohort retention | Multi-CTE, date arithmetic, cohort join |
+
+### Database Schema
+
+```
+customers(customer_id PK, customer_name, segment, country, city, state, postal_code, region)
+products(product_id PK, category, sub_category, product_name)
+orders(order_id PK, order_date, ship_date, ship_mode, customer_id FK, days_to_ship)
+order_items(row_id PK, order_id FK, product_id FK, sales)
+```
 
 ---
 
 ## Machine Learning
 
-**Model:** Linear Regression  
-**Target:** Sales  
-**Features:** Days to ship, Region (encoded), Category (encoded), Segment (encoded)  
-**Metrics:** R² score and MAE (Mean Absolute Error in dollars)
+**Model:** Linear Regression
+**Target:** Sales
+**Features:** Days to ship, Region (encoded), Category (encoded), Segment (encoded)
+**Results:** R² = −0.001, MAE = $303.76
 
-Baseline model demonstrating feature engineering and sklearn pipeline on real sales data.
+The near-zero R² indicates these categorical/logistics features alone do not predict individual sale amounts — sales variance is driven by product choice and quantity, not by region or shipping speed. This is itself a useful finding: delivery logistics have negligible predictive power over order value.
 
 ---
 
@@ -127,12 +153,12 @@ cd sales-analysis
 python -m pip install pandas matplotlib scikit-learn
 ```
 
-**3. Load data into SQLite**
+**3. Load data into SQLite (normalised schema)**
 ```bash
 python LoadSQL.py
 ```
 
-**4. Run SQL queries**
+**4. Run SQL queries (12 analytical queries)**
 ```bash
 python SQLQueries.py
 ```
@@ -140,7 +166,7 @@ python SQLQueries.py
 **5. Run EDA and charts**
 ```bash
 python EDA.py
-python Charts.py
+python charts.py
 ```
 
 **6. Run ML model**
@@ -150,11 +176,8 @@ python ML.py
 
 **7. Export for Power BI**
 ```bash
-python ExportForPowerBI.py
+python Export_PowerBI.py
 ```
-
-**8. Open Power BI dashboard**  
-Open `powerbi/sales_dashboard.pbix` in Power BI Desktop.
 
 ---
 
@@ -169,6 +192,6 @@ Open `powerbi/sales_dashboard.pbix` in Power BI Desktop.
 
 ## Author
 
-**Prakhar Bansal**  
-B.Tech Computer Science (AI) — Parul University  
+**Prakhar Bansal**
+B.Tech Computer Science (AI) — Parul University
 [GitHub](https://github.com/PrakharBansal888)
